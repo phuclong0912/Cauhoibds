@@ -3,64 +3,58 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Thi Trắc Nghiệm Môi Giới BĐS 2025</title>
+    <title>Thi Môi Giới Bất Động Sản 2025 - 50 Câu</title>
     <style>
-        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#e8f5e8; color:#333;}
+        body {font-family: Arial, sans-serif; margin:0; background:#e8f5e8; color:#333;}
         .container {max-width:900px; margin:20px auto; padding:20px; background:white; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
         h1 {text-align:center; color:#1b5e20;}
         #timer {text-align:center; font-size:24px; color:#d50000; margin:15px 0;}
         .question {margin:25px 0; padding:15px; background:#f1f8e9; border-radius:10px;}
         .options {display:grid; gap:12px;}
-        .option {padding:15px; background:#e8f5e8; border:2px solid #81c784; border-radius:8px; cursor:pointer; transition:0.3s;}
+        .option {padding:15px; background:#e8f5e8; border:2px solid #81c784; border-radius:8px; cursor:pointer;}
         .option:hover {background:#c8e6c9;}
         .option.selected {background:#81c784; color:white;}
-        .option.correct {background:#4caf50; color:white;}
+        .option.correct {background:#4caf50; color:white; font-weight:bold;}
         .option.incorrect {background:#f44336; color:white;}
         button {background:#2e7d32; color:white; padding:12px 25px; border:none; border-radius:8px; font-size:16px; cursor:pointer; margin:10px;}
         button:hover {background:#1b5e20;}
-        #result {text-align:center; font-size:22px; margin-top:30px;}
+        #result, #answers {text-align:center; margin:30px 0; font-size:18px;}
         .hidden {display:none;}
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>Ôn Thi Chứng Chỉ Môi Giới Bất Động Sản 2025</h1>
+        <h1>Thi Trắc Nghiệm Chứng Chỉ Môi Giới BĐS 2025</h1>
         <div id="timer">Thời gian: 30:00</div>
         <div id="quiz"></div>
         <div style="text-align:center;">
-            <button id="submit" class="hidden" onclick="submitQuiz()">Nộp Bài</button>
+            <button id="submit" onclick="submitQuiz()">Nộp Bài</button>
             <button onclick="restartQuiz()">Làm Lại</button>
         </div>
-        <div id="result"></div>
+        <div id="result" class="hidden"></div>
+        <div id="answers" class="hidden"></div>
     </div>
 
     <script src="questions.js"></script>
     <script>
-        let currentQuestions = [], userAnswers = [], timeLeft = 30*60, timer;
+        let current = [], user = [], timeLeft = 1800, timer;
 
-        function shuffle(array) {
-            for (let i = array.length-1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
-            }
-            return array;
-        }
+        function shuffle(a) { for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
-        function initQuiz() {
-            currentQuestions = shuffle([...questions]);
-            currentQuestions.forEach(q => {
+        function init() {
+            current = shuffle([...questions]);
+            current.forEach(q => {
                 let opts = shuffle([...q.options]);
                 q.shuffled = opts;
                 q.correctIdx = opts.indexOf(q.options[q.correct]);
             });
-            userAnswers = new Array(currentQuestions.length).fill(-1);
-            displayQuiz();
+            user = new Array(50).fill(-1);
+            display();
             startTimer();
-            document.getElementById('submit').classList.remove('hidden');
         }
 
-        function displayQuiz() {
-            document.getElementById('quiz').innerHTML = currentQuestions.map((q, i) => `
+        function display() {
+            document.getElementById('quiz').innerHTML = current.map((q, i) => `
                 <div class="question">
                     <strong>Câu ${i+1}:</strong> ${q.question}
                     <div class="options">
@@ -73,7 +67,7 @@
         }
 
         function choose(qIdx, optIdx) {
-            userAnswers[qIdx] = optIdx;
+            user[qIdx] = optIdx;
             document.querySelectorAll(`.question:nth-child(${qIdx+1}) .option`).forEach((el, j) => {
                 el.classList.toggle('selected', j === optIdx);
             });
@@ -91,32 +85,35 @@
 
         function submitQuiz() {
             clearInterval(timer);
+            document.getElementById('submit').disabled = true;
             let score = 0;
-            currentQuestions.forEach((q, i) => {
-                let selected = userAnswers[i];
+            let detail = '<h2>Đáp án chi tiết:</h2>';
+            current.forEach((q, i) => {
                 let opts = document.querySelectorAll(`.question:nth-child(${i+1}) .option`);
-                if (selected === q.correctIdx) { score++; opts[selected].classList.add('correct'); }
+                if (user[i] === q.correctIdx) { score++; opts[user[i]].classList.add('correct'); }
                 else {
-                    if (selected !== -1) opts[selected].classList.add('incorrect');
+                    if (user[i] !== -1) opts[user[i]].classList.add('incorrect');
                     opts[q.correctIdx].classList.add('correct');
                 }
+                detail += `<p><strong>Câu ${i+1}:</strong> Đáp án đúng là <strong>${String.fromCharCode(65+q.correctIdx)}. ${q.options[q.correct]}</strong></p>`;
             });
-            let percent = (score/currentQuestions.length*100).toFixed(1);
-            document.getElementById('result').innerHTML = `
-                <h2>Kết quả: ${score}/${currentQuestions.length} điểm (${percent}%)</h2>
-                ${percent >= 80 ? 'Xuất sắc! Đậu chắc!' : percent >= 60 ? 'Khá tốt, ôn thêm chút nữa!' : 'Cần ôn lại kỹ hơn nhé!'}
-            `;
-            document.getElementById('submit').classList.add('hidden');
+            let percent = (score/50*100).toFixed(1);
+            document.getElementById('result').innerHTML = `<h2>Kết quả: ${score}/50 điểm (${percent}%)</h2>
+                ${percent >= 80 ? 'XUẤT SẮC! ĐẬU CHẮC!' : percent >= 60 ? 'Tốt, ôn thêm là đậu!' : 'Cần ôn lại kỹ hơn nhé!'}`;
+            document.getElementById('answers').innerHTML = detail + '<button onclick="document.getElementById(\'answers\').classList.add(\'hidden\')">Ẩn đáp án</button>';
+            document.getElementById('result').classList.remove('hidden');
+            document.getElementById('answers').classList.remove('hidden');
         }
 
         function restartQuiz() {
-            timeLeft = 30*60;
-            document.getElementById('result').innerHTML = '';
-            document.getElementById('quiz').innerHTML = '';
-            initQuiz();
+            timeLeft = 1800;
+            document.getElementById('result').classList.add('hidden');
+            document.getElementById('answers').classList.add('hidden');
+            document.getElementById('submit').disabled = false;
+            init();
         }
 
-        initQuiz();
+        init();
     </script>
 </body>
-          </html>
+</html>
