@@ -39,13 +39,19 @@
 
     <script src="questions.js"></script>
     <script>
-        let current = [], user = [], timeLeft = 20*60, timer; // ← 20 phút cho 20 câu
+        let current = [], user = [], timeLeft = 20*60, timer;
 
-        function shuffle(a) { for (let i = a.length-1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+        function shuffle(a) { 
+            for (let i = a.length-1; i > 0; i--) { 
+                const j = Math.floor(Math.random() * (i + 1)); 
+                [a[i], a[j]] = [a[j], a[i]]; 
+            } 
+            return a; 
+        }
 
         function init() {
             let allQuestions = shuffle([...questions]);
-            current = allQuestions.slice(0, 20); // ← CHỈ LẤY 20 CÂU
+            current = allQuestions.slice(0, 20);  // ← chỉ lấy 20 câu
             current.forEach(q => {
                 let opts = shuffle([...q.options]);
                 q.shuffled = opts;
@@ -89,20 +95,28 @@
         function submitQuiz() {
             clearInterval(timer);
             document.getElementById('submit').disabled = true;
+
             let score = 0;
             let detail = '<h2>Đáp án chi tiết:</h2>';
+
             current.forEach((q, i) => {
                 let opts = document.querySelectorAll(`.question:nth-child(${i+1}) .option`);
-                if (user[i] === q.correctIdx) { score++; opts[user[i]].classnameList.add('correct'); }
-                else {
+                if (user[i] === q.correctIdx) {
+                    score++;
+                    opts[user[i]].classList.add('correct');
+                } else {
                     if (user[i] !== -1) opts[user[i]].classList.add('incorrect');
                     opts[q.correctIdx].classList.add('correct');
                 }
                 detail += `<p><strong>Câu ${i+1}:</strong> Đáp án đúng: <strong>${String.fromCharCode(65+q.correctIdx)}. ${q.options[q.correct]}</strong></p>`;
             });
+
             let percent = (score/20*100).toFixed(1);
-            document.getElementById('result').innerHTML = `<h2>Kết quả: ${score}/20 điểm (${percent}%)</h2>
-                ${percent >= 80 ? 'XUẤT SẮC! ĐẬU CHẮC!' : percent >= 70 ? 'Tốt, gần đậu rồi!' : 'Ôn lại đi bro!'}<br><button onclick="document.getElementById('answers').classList.remove('hidden')">Xem đáp án chi tiết</button>`;
+            document.getElementById('result').innerHTML = `
+                <h2>Kết quả: ${score}/20 điểm (${percent}%)</h2>
+                ${percent >= 80 ? 'XUẤT SẮC! ĐẬU CHẮC!' : percent >= 70 ? 'Tốt, gần đậu rồi!' : 'Ôn lại đi bro!'}
+                <br><button onclick="document.getElementById('answers').classList.remove('hidden')">Xem đáp án chi tiết</button>
+            `;
             document.getElementById('answers').innerHTML = detail;
             document.getElementById('result').classList.remove('hidden');
         }
