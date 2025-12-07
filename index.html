@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thi Trắc Nghiệm Môi Giới BĐS 2025</title>
+    <style>
+        body {font-family: Arial, sans-serif; margin:0; padding:0; background:#e8f5e8; color:#333;}
+        .container {max-width:900px; margin:20px auto; padding:20px; background:white; border-radius:15px; box-shadow:0 5px 20px rgba(0,0,0,0.1);}
+        h1 {text-align:center; color:#1b5e20;}
+        #timer {text-align:center; font-size:24px; color:#d50000; margin:15px 0;}
+        .question {margin:25px 0; padding:15px; background:#f1f8e9; border-radius:10px;}
+        .options {display:grid; gap:12px;}
+        .option {padding:15px; background:#e8f5e8; border:2px solid #81c784; border-radius:8px; cursor:pointer; transition:0.3s;}
+        .option:hover {background:#c8e6c9;}
+        .option.selected {background:#81c784; color:white;}
+        .option.correct {background:#4caf50; color:white;}
+        .option.incorrect {background:#f44336; color:white;}
+        button {background:#2e7d32; color:white; padding:12px 25px; border:none; border-radius:8px; font-size:16px; cursor:pointer; margin:10px;}
+        button:hover {background:#1b5e20;}
+        #result {text-align:center; font-size:22px; margin-top:30px;}
+        .hidden {display:none;}
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Ôn Thi Chứng Chỉ Môi Giới Bất Động Sản 2025</h1>
+        <div id="timer">Thời gian: 30:00</div>
+        <div id="quiz"></div>
+        <div style="text-align:center;">
+            <button id="submit" class="hidden" onclick="submitQuiz()">Nộp Bài</button>
+            <button onclick="restartQuiz()">Làm Lại</button>
+        </div>
+        <div id="result"></div>
+    </div>
+
+    <script src="questions.js"></script>
+    <script>
+        let currentQuestions = [], userAnswers = [], timeLeft = 30*60, timer;
+
+        function shuffle(array) {
+            for (let i = array.length-1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function initQuiz() {
+            currentQuestions = shuffle([...questions]);
+            currentQuestions.forEach(q => {
+                let opts = shuffle([...q.options]);
+                q.shuffled = opts;
+                q.correctIdx = opts.indexOf(q.options[q.correct]);
+            });
+            userAnswers = new Array(currentQuestions.length).fill(-1);
+            displayQuiz();
+            startTimer();
+            document.getElementById('submit').classList.remove('hidden');
+        }
+
+        function displayQuiz() {
+            document.getElementById('quiz').innerHTML = currentQuestions.map((q, i) => `
+                <div class="question">
+                    <strong>Câu ${i+1}:</strong> ${q.question}
+                    <div class="options">
+                        ${q.shuffled.map((opt, j) => `
+                            <div class="option" onclick="choose(${i},${j})">${String.fromCharCode(65+j)}. ${opt}</div>
+                        `).join('')}
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function choose(qIdx, optIdx) {
+            userAnswers[qIdx] = optIdx;
+            document.querySelectorAll(`.question:nth-child(${qIdx+1}) .option`).forEach((el, j) => {
+                el.classList.toggle('selected', j === optIdx);
+            });
+        }
+
+        function startTimer() {
+            timer = setInterval(() => {
+                timeLeft--;
+                let m = String(Math.floor(timeLeft/60)).padStart(2,'0');
+                let s = String(timeLeft%60).padStart(2,'0');
+                document.getElementById('timer').textContent = `Thời gian: ${m}:${s}`;
+                if (timeLeft <= 0) submitQuiz();
+            }, 1000);
+        }
+
+        function submitQuiz() {
+            clearInterval(timer);
+            let score = 0;
+            currentQuestions.forEach((q, i) => {
+                let selected = userAnswers[i];
+                let opts = document.querySelectorAll(`.question:nth-child(${i+1}) .option`);
+                if (selected === q.correctIdx) { score++; opts[selected].classList.add('correct'); }
+                else {
+                    if (selected !== -1) opts[selected].classList.add('incorrect');
+                    opts[q.correctIdx].classList.add('correct');
+                }
+            });
+            let percent = (score/currentQuestions.length*100).toFixed(1);
+            document.getElementById('result').innerHTML = `
+                <h2>Kết quả: ${score}/${currentQuestions.length} điểm (${percent}%)</h2>
+                ${percent >= 80 ? 'Xuất sắc! Đậu chắc!' : percent >= 60 ? 'Khá tốt, ôn thêm chút nữa!' : 'Cần ôn lại kỹ hơn nhé!'}
+            `;
+            document.getElementById('submit').classList.add('hidden');
+        }
+
+        function restartQuiz() {
+            timeLeft = 30*60;
+            document.getElementById('result').innerHTML = '';
+            document.getElementById('quiz').innerHTML = '';
+            initQuiz();
+        }
+
+        initQuiz();
+    </script>
+</body>
+          </html>
