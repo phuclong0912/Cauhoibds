@@ -53,10 +53,9 @@
             let allQuestions = shuffle([...questions]);
             current = allQuestions.slice(0, 20);  // ← chỉ lấy 20 câu
             current.forEach(q => {
-                let opts = shuffle([...q.options]);
-                q.shuffled = opts;
-                q.correctIdx = opts.indexOf(q.options[q.correct]);
-            });
+    q.shuffled = [...q.options];  // giữ nguyên thứ tự A-B-C-D
+    q.correctIdx = q.correct;     // đáp án đúng vẫn ở vị trí gốc
+});
             user = new Array(20).fill(-1);
             display();
             startTimer();
